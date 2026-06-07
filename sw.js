@@ -1,0 +1,5 @@
+const CACHE_NAME='early-composition-v1';
+const APP_SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE_NAME).then(c=>Promise.all(APP_SHELL.map(u=>c.add(u).catch(()=>{})))).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(n=>Promise.all(n.filter(x=>x!==CACHE_NAME).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=e.request.url;if(/youtube|googlevideo|ytimg/.test(u))return;e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request).then(r=>{if(r&&r.status===200&&(u.includes('fonts.gstatic.com')||u.startsWith(self.location.origin))){const cl=r.clone();caches.open(CACHE_NAME).then(c=>c.put(e.request,cl));}return r;}).catch(()=>{if(e.request.mode==='navigate')return caches.match('./index.html');})));});
